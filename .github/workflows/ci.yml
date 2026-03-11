@@ -25,7 +25,6 @@ jobs:
       - name: Installation des dépendances et Tests
         run: |
           npm install
-          # Si tu n'as pas de tests, cette commande ne bloquera pas le build
           npm test || echo "Pas de tests définis"
 
       - name: Connexion au GitHub Container Registry
@@ -35,10 +34,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Cette étape transforme le nom du repo en minuscules
+      - name: Lowercase repo name
+        run: |
+          echo "REPO_LOWER=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
       - name: Build et Push de l'image Docker
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
+          # On utilise la variable en minuscules ici
           tags: |
-            ghcr.io/${{ github.repository }}/app-devops:latest
+            ghcr.io/${{ env.REPO_LOWER }}/app-devops:latest
